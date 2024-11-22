@@ -2,7 +2,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Outfit } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-
+import Provider from "./provider";
 const outfit = Outfit({ subsets: ["latin"] });
 
 export const metadata = {
@@ -15,7 +15,7 @@ export default function RootLayout({ children }) {
     <ClerkProvider>
       <html lang="en">
         <body className={outfit.className} suppressHydrationWarning>
-          {children}
+          <Provider>{children}</Provider>
         </body>
       </html>
     </ClerkProvider>
