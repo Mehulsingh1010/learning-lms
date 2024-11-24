@@ -1,18 +1,24 @@
 'use client';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { USER_TABLE } from "@/configs/schema";
 import { db } from "@/configs/db";
 import { useUser } from "@clerk/nextjs";
 import React, { useEffect } from "react";
 import { eq } from "drizzle-orm";
 =======
+=======
+>>>>>>> 270b75442fcae5ae7b78b26281d16d2b155a93fc
 // import { USER_TABLE } from "@/configs/schema";
 // import { db } from "@/configs/db";
 import { useUser } from "@clerk/nextjs";
 import React, { useEffect } from "react";
 import { eq } from "drizzle-orm";
 import axios from "axios";
+<<<<<<< HEAD
 >>>>>>> 270b754 (connected)
+=======
+>>>>>>> 270b75442fcae5ae7b78b26281d16d2b155a93fc
 
 function Provider({ children }) {
   const { user } = useUser();
@@ -22,6 +28,7 @@ function Provider({ children }) {
   }, [user]); // Dependency array to re-run when `user` changes
 
   const CheckNewUser = async () => {
+<<<<<<< HEAD
 <<<<<<< HEAD
     try {
         const email = user?.primaryEmailAddress?.emailAddress; // Clerk's primary email field
@@ -56,6 +63,8 @@ function Provider({ children }) {
         console.error("Error checking or adding user:", error);
     }
 =======
+=======
+>>>>>>> 270b75442fcae5ae7b78b26281d16d2b155a93fc
 //     try {
 //         const email = user?.primaryEmailAddress?.emailAddress; // Clerk's primary email field
 //         const name = user?.username || // Use username from Clerk
@@ -92,7 +101,10 @@ function Provider({ children }) {
     const resp=await axios.post('/api/create-user',{user:user});
     console.log(resp.data);
 
+<<<<<<< HEAD
 >>>>>>> 270b754 (connected)
+=======
+>>>>>>> 270b75442fcae5ae7b78b26281d16d2b155a93fc
 };
 
 
