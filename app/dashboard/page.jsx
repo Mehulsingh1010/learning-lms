@@ -1,9 +1,10 @@
 import React from 'react'
+import Bannner from './_components/Bannner'
 
 const Dashboard = () => {
   return (
-    <div>
-      Dashbaord
+    <div className=''>
+      <Bannner />
     </div>
   )
 }

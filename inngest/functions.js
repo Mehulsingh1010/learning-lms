@@ -8,7 +8,6 @@ export const helloWorld = inngest.createFunction(
     return { message: `Hello ${event.data.email}!` };
   }
 );
-
 export const createNewUser = inngest.createFunction(
   { id: "create-user" },
   { event: "user.create" },

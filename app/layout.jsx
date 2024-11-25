@@ -6,7 +6,7 @@ import Provider from "./provider";
 const outfit = Outfit({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Topper Stack",
+  title: "Topper Town",
   description: "Study and excel",
 };
 
