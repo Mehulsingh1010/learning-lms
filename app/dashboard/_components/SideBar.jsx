@@ -40,7 +40,8 @@ function SideBar() {
         <h2 className="font-bold text-2xl">Easy Study </h2>
       </div>
       <div className="mt-10">
-        <Button className="w-full">+ Create New</Button>
+        <Link href={'/create'} > 
+        <Button className="w-full">+ Create New</Button></Link>
         <div className='mt-5'>
           {menuList.map((menu, index) => (
             <div key={index} className={`flex items-center p-3 hover:bg-[#DEE4EE] gap-5 rounded-lg cursor-pointer mt-3 ${path==menu.path &&'bg-[#DEE4EE]'}`}>

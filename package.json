@@ -10,8 +10,10 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.4.0",
+    "@google/generative-ai": "^0.21.0",
     "@neondatabase/serverless": "^0.10.3",
     "@radix-ui/react-progress": "^1.1.0",
+    "@radix-ui/react-select": "^2.1.2",
     "@radix-ui/react-slot": "^1.1.0",
     "axios": "^1.7.7",
     "class-variance-authority": "^0.7.0",
@@ -25,7 +27,8 @@
     "react-dom": "^18",
     "swr": "^2.2.5",
     "tailwind-merge": "^2.5.4",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "uuid": "^11.0.3"
   },
   "devDependencies": {
     "drizzle-kit": "^0.28.1",
