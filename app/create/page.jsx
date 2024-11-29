@@ -1,17 +1,22 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import ChoiceSelection from "./_components/ChoiceSelection";
 import { Button } from "@/components/ui/button";
 import TopicInput from "./_components/TopicInput";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { useUser } from "@clerk/nextjs";
+import { Loader } from "lucide-react";
+import { useRouter } from "next/navigation"; // Correct import for App Router
+import { toast } from "sonner";
 
 function Create() {
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState({});
-  const { user, isLoaded } = useUser();  // Check if user data is loaded
+  const { user, isLoaded } = useUser(); // Check if user data is loaded
   const [loading, setLoading] = useState(false);
+  const router = useRouter(); // Correct usage of `useRouter`
+
 
   // Handle user input
   const handleUserInput = (fieldName, fieldValue) => {
@@ -40,7 +45,7 @@ function Create() {
         courseType: formData.courseType,
         topic: formData.topic,
         difficultyLevel: formData.difficultyLevel,
-        createdBy: user?.primaryEmailAddress,
+        createdBy: user?.primaryEmailAddress.emailAddress,
       });
       return alert("Please fill all fields before generating the course outline.");
     }
@@ -52,11 +57,13 @@ function Create() {
         courseType: formData.courseType,
         topic: formData.topic,
         difficultyLevel: formData.difficultyLevel,
-        createdBy: user?.primaryEmailAddress, // User's email is used here
+        createdBy: user?.primaryEmailAddress.emailAddress, // User's email is used here
       });
 
       console.log("Generated course outline:", response.data);
       alert("Course outline generated successfully!");
+      router.push('/dashboard'); // Correct routing method
+      toast('Your course content is being generated, refresh after a few seconds')
     } catch (error) {
       console.error("Error generating course outline:", error.response?.data || error.message);
       alert("Failed to generate course outline. Please try again.");
@@ -111,7 +118,7 @@ function Create() {
           </Button>
         ) : (
           <Button onClick={generateCourseOutline} disabled={loading}>
-            {loading ? "Generating..." : "Generate"}
+            {loading ? <Loader className="animate-spin" /> : "Generate"}
           </Button>
         )}
       </div>

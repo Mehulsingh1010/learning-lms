@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/configs/db";
 import { courseOutlineAIModel } from "@/configs/AiModel";
 import { STUDY_MATERIAL_TABLE } from "@/configs/schema";
+import { inngest } from "@/inngest/client";
 
 export async function POST(request) {
   try {
@@ -10,7 +11,9 @@ export async function POST(request) {
     // Validate input
     if (!courseId || !topic || !courseType || !difficultyLevel || !createdBy) {
       return NextResponse.json(
-        { error: "Missing required fields: courseId, topic, courseType, difficultyLevel, or createdBy" },
+        {
+          error: "Missing required fields: courseId, topic, courseType, difficultyLevel, or createdBy",
+        },
         { status: 400 }
       );
     }
@@ -20,26 +23,20 @@ export async function POST(request) {
 
     console.log("Generated AI prompt:", PROMPT);
 
-    // Request AI model
+    // Get AI response
     const aiResp = await courseOutlineAIModel.sendMessage(PROMPT);
-
-    console.log("AI raw response:", JSON.stringify(aiResp, null, 2));
-
-    // Navigate the AI response structure
-    const aiText = aiResp?.response?.candidates?.[0]?.content?.parts?.[0]?.text;
-
+    const aiText = await aiResp?.response?.text();
     if (!aiText) {
-      console.error("AI response does not contain valid text:", aiResp);
       throw new Error("AI response is invalid or missing.");
     }
 
-    // Parse the JSON string from the AI text
+    // Parse the JSON response
     let courseOutline;
     try {
       courseOutline = JSON.parse(aiText);
-    } catch (parseError) {
-      console.error("Error parsing AI response text as JSON:", aiText, parseError);
-      throw new Error("Failed to parse AI response text as JSON.");
+    } catch (error) {
+      console.error("Failed to parse AI response as JSON:", aiText, error);
+      throw new Error("Failed to parse AI response.");
     }
 
     console.log("Parsed course outline:", courseOutline);
@@ -53,10 +50,24 @@ export async function POST(request) {
       courseLayout: courseOutline,
     };
 
-    console.log("Inserting into database:", dataToInsert);
-
-    const dbResult = await db.insert(STUDY_MATERIAL_TABLE).values(dataToInsert).returning();
+    const dbResult = await db
+      .insert(STUDY_MATERIAL_TABLE)
+      .values(dataToInsert)
+      .returning();
     console.log("Database insertion result:", dbResult);
+
+    // Trigger notes generation via Inngest
+    const result = await inngest.send({
+      name: "notes.generate",
+      data: {
+        course: {
+          courseId,
+          courseLayout: courseOutline, // Pass the course outline
+        },
+      },
+    });
+
+    console.log("Inngest send result:", result);
 
     return NextResponse.json({ result: dbResult[0] });
   } catch (error) {

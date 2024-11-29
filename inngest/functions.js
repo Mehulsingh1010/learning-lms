@@ -1,5 +1,8 @@
+import { db } from "@/configs/db";
 import { inngest } from "./client";
-
+import { CHAPTER_NOTES_TABLE, STUDY_MATERIAL_TABLE } from "@/configs/schema";
+import { eq } from "drizzle-orm";
+import { generateNotesAiModel } from "@/configs/AiModel";
 export const helloWorld = inngest.createFunction(
   { id: "hello-world" },
   { event: "test/hello.world" },
@@ -56,3 +59,69 @@ export const createNewUser = inngest.createFunction(
     return "Success";
   }
 );
+export const generateNotes = inngest.createFunction(
+  { id: "generate-course" },
+  { event: "notes.generate" },
+  async ({ event, step }) => {
+    console.log("Received event data:", event.data);
+
+    const { course } = event.data;
+
+    // Validate the course object and its fields
+    if (
+      !course ||
+      !course.courseId ||
+      !course.courseLayout ||
+      !Array.isArray(course.courseLayout.chapters)
+    ) {
+      console.error("Invalid or missing course data:", course);
+      throw new Error("Invalid or incomplete course data received.");
+    }
+
+    const { courseId, courseLayout } = course;
+    const { chapters } = courseLayout;
+
+    // Log course details for debugging
+    console.log(`Processing courseId: ${courseId} with ${chapters.length} chapters`);
+
+    const notesResult = await step.run("Generate Chapter Notes", async () => {
+      for (let index = 0; index < chapters.length; index++) {
+        const chapter = chapters[index];
+        const PROMPT = `Generate exam material for chapter titled '${chapter.chapterTitle}'.
+                        Include all topics and format the output in clean HTML without <head>, <body>, or <title> tags.
+                        Chapter details: ${JSON.stringify(chapter)}`;
+
+        try {
+          const result = await generateNotesAiModel.sendMessage(PROMPT);
+          const aiResp = await result.response.text();
+
+          // Insert notes into database
+          await db.insert(CHAPTER_NOTES_TABLE).values({
+            chapterId: index,
+            courseId,
+            notes: aiResp,
+          });
+        } catch (error) {
+          console.error(`Error generating notes for chapter ${index}:`, error);
+        }
+      }
+      return "Notes generation complete";
+    });
+
+    const updateCourseStatus = await step.run("Update course status", async () => {
+      try {
+        await db
+          .update(STUDY_MATERIAL_TABLE)
+          .set({ status: "Ready" })
+          .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId));
+        return "Course marked as ready";
+      } catch (error) {
+        console.error("Error updating course status:", error);
+        throw new Error("Failed to update course status.");
+      }
+    });
+
+    return { notesResult, updateCourseStatus };
+  }
+);
+
