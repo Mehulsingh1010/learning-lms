@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/configs/db";
-import { STUDY_MATERIAL_TABLE } from "@/configs/schema";
+import { STUDY_MATERIAL_TABLE,CHAPTER_NOTES_TABLE } from "@/configs/schema";
 import { desc, eq } from "drizzle-orm";
 
 export async function POST(req) {
@@ -31,6 +31,44 @@ export async function POST(req) {
     console.error("Error fetching courses:", error);
     return NextResponse.json(
       { error: "An error occurred while fetching courses." },
+      { status: 500 }
+    );
+  }
+}
+
+
+export async function GET(req) {
+  try {
+    const { searchParams } = new URL(req.url); // Correct searchParams
+    const courseId = searchParams.get('courseId');
+
+    if (!courseId) {
+      return NextResponse.json({ error: "Invalid request. 'courseId' is required." }, { status: 400 });
+    }
+
+    // Fetch study material
+    const studyMaterial = await db
+      .select()
+      .from(STUDY_MATERIAL_TABLE)
+      .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId));
+
+    // Fetch notes for the course
+    const notes = await db
+      .select()
+      .from(CHAPTER_NOTES_TABLE)
+      .where(eq(CHAPTER_NOTES_TABLE.courseId, courseId));
+
+    // Combine both results
+    const result = {
+      studyMaterial,
+      notes,
+    };
+
+    return NextResponse.json({ result, message: "Data fetched successfully." });
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return NextResponse.json(
+      { error: "An error occurred while fetching data." },
       { status: 500 }
     );
   }

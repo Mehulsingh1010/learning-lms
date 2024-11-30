@@ -7,11 +7,7 @@ import React from "react";
 function CourseCardItem({ course }) {
   // Normalize title logic
   const courseTitle =
-    course?.courseLayout?.courseName ||
-    course?.courseLayout?.courseTitle ||
-    course?.courseLayout?.title ||
-    course?.topic || // Use topic as fallback
-    "Untitled Course";
+    course?.courseLayout?.courseTopic;
 
   const summary = course?.courseLayout?.summary || course?.courseLayout?.courseSummary || "No summary available.";
   const postedDate = new Date(course?.createdAt || Date.now()).toLocaleDateString();
