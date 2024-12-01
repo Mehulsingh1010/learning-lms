@@ -26,10 +26,11 @@ function Course() {
     GetCourse();
   }, [courseId]);
 
+  
   return (
     <div>
-      <Headerwithlogo />
-      <div className='mx-10 md:mx-36 lg:px-36 mt-10'>
+     
+      <div >
         {course ? (
           <CourseIntroCard course={course} />
         ) : (
