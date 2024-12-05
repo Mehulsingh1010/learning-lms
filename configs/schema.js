@@ -13,7 +13,7 @@ export const STUDY_MATERIAL_TABLE = pgTable('studyMaterial', {
   courseId: varchar().notNull(),
   courseType: varchar().notNull(),
   topic: varchar().notNull(),
-  difficultyLevel: varchar().default('Easy'),
+  difficultyLevel: varchar().default('Hard'),
   courseLayout: json(),
   createdBy: varchar().notNull(),
   status: varchar().default('Generating')
@@ -24,4 +24,12 @@ export const CHAPTER_NOTES_TABLE =pgTable('chapterNotes',{
   courseId:varchar().notNull(),
   chapterId:integer().notNull(),
   notes:text(),
+})
+
+export const STUDY_TYPE_CONTENT_TABLE=pgTable('studyTypeContent',{
+  id:serial().primaryKey(),
+  courseId:varchar().notNull(),
+  content:json(),
+  type:varchar().notNull(),
+  status:varchar().default('Generating'),
 })

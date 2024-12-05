@@ -1,11 +1,10 @@
-/* eslint-disable react/jsx-key */
 import React, { useEffect, useState } from "react";
 import MaterialCardItem from "./MaterialCardItem";
 import { db } from "@/configs/db";
 import axios from "axios";
 import Link from "next/link";
 
-function StudyMaterialSection({ courseId }) {
+function StudyMaterialSection({ courseId,course }) {
   const materialList = [
     {
       name: "Notes/Chapters",
@@ -50,23 +49,21 @@ function StudyMaterialSection({ courseId }) {
     console.log(result?.data);
     setStudyContent(result?.data);
   };
+
   return (
     <div className="mt-5">
       <h2 className="font-medium text-xl">Study Material</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mt-2">
-      
-          {materialList.map((item, index) => {
-            return (
-            <Link href={"/course/" + courseId + item.path}>
-              <MaterialCardItem
-                key={index}
-                item={item}
-                studyContent={studyContent}
-              />
-              </Link>
-
-            );
-          })}
+        {materialList.map((item, index) => {
+          return (
+            <Link
+              key={index} // Move key here
+              href={"/course/" + courseId + item.path}
+            >
+              <MaterialCardItem item={item} studyContent={studyContent} course={course} setStudyContent={setStudyContent}/>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

@@ -37,7 +37,7 @@ function Course() {
           <p>Loading course data...</p>
         )}
 
-        <StudyMaterialSection courseId={courseId} />
+        <StudyMaterialSection courseId={courseId} course={course}/>
 
         <ChapterList course={course} />
       </div>

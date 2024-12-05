@@ -1,6 +1,10 @@
 import { db } from "@/configs/db";
 import { inngest } from "./client";
-import { CHAPTER_NOTES_TABLE, STUDY_MATERIAL_TABLE } from "@/configs/schema";
+import {
+  CHAPTER_NOTES_TABLE,
+  STUDY_MATERIAL_TABLE,
+  STUDY_TYPE_CONTENT_TABLE,
+} from "@/configs/schema";
 import { eq } from "drizzle-orm";
 import { generateNotesAiModel } from "@/configs/AiModel";
 export const helloWorld = inngest.createFunction(
@@ -44,7 +48,7 @@ export const createNewUser = inngest.createFunction(
                 email: email,
               })
               .returning({ id: USER_TABLE.id });
-              return userResp;
+            return userResp;
 
             console.log("New user added:", userResp);
           } else {
@@ -82,12 +86,16 @@ export const generateNotes = inngest.createFunction(
     const { chapters } = courseLayout;
 
     // Log course details for debugging
-    console.log(`Processing courseId: ${courseId} with ${chapters.length} chapters`);
+    console.log(
+      `Processing courseId: ${courseId} with ${chapters.length} chapters`
+    );
 
     const notesResult = await step.run("Generate Chapter Notes", async () => {
       for (let index = 0; index < chapters.length; index++) {
         const chapter = chapters[index];
-        const PROMPT = `Generate exam material for chapter titled '${chapter.chapterTitle}'.
+        const PROMPT = `Generate exam material for chapter titled '${
+          chapter.chapterTitle
+        }'.
                         Include all topics and format the output in clean HTML without <head>, <body>, or <title> tags.
                         Chapter details: ${JSON.stringify(chapter)}`;
 
@@ -108,20 +116,50 @@ export const generateNotes = inngest.createFunction(
       return "Notes generation complete";
     });
 
-    const updateCourseStatus = await step.run("Update course status", async () => {
-      try {
-        await db
-          .update(STUDY_MATERIAL_TABLE)
-          .set({ status: "Ready" })
-          .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId));
-        return "Course marked as ready";
-      } catch (error) {
-        console.error("Error updating course status:", error);
-        throw new Error("Failed to update course status.");
+    const updateCourseStatus = await step.run(
+      "Update course status",
+      async () => {
+        try {
+          await db
+            .update(STUDY_MATERIAL_TABLE)
+            .set({ status: "Ready" })
+            .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId));
+          return "Course marked as ready";
+        } catch (error) {
+          console.error("Error updating course status:", error);
+          throw new Error("Failed to update course status.");
+        }
       }
-    });
+    );
 
     return { notesResult, updateCourseStatus };
   }
 );
 
+export const GenerateStudyTypeContent = inngest.createFunction(
+  { id: "Generate Study Content" },
+  { event: "studyType.content" },
+
+  async ({ event, step }) => {
+    const { studyType, prompt, courseId, recordId } = event.data;
+
+    const FlashcardAiResult = await step.run(
+      "Generating Flash Cards Using AI",
+      async () => {
+        const result = await GenerateStudyTypeContent.sendMessage(prompt);
+        const AiResult = JSON.parse(result.response.text());
+        return AiResult;
+      }
+    );
+    const DbResult = await step.run("Save result to db", async () => {
+      const result = await db
+        .update(STUDY_TYPE_CONTENT_TABLE)
+        .set({
+          content: FlashcardAiResult,
+        })
+        .where(eq(STUDY_TYPE_CONTENT_TABLE.id, recordId));
+
+      return "Data Inserted";
+    });
+  }
+);
