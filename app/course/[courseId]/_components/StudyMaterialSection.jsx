@@ -56,12 +56,9 @@ function StudyMaterialSection({ courseId,course }) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mt-2">
         {materialList.map((item, index) => {
           return (
-            <Link
-              key={index} // Move key here
-              href={"/course/" + courseId + item.path}
-            >
-              <MaterialCardItem item={item} studyContent={studyContent} course={course} setStudyContent={setStudyContent}/>
-            </Link>
+            
+              <MaterialCardItem key={index}  item={item} studyContent={studyContent} course={course} setStudyContent={setStudyContent}/>
+            
           );
         })}
       </div>

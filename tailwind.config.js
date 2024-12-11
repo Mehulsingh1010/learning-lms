@@ -8,6 +8,21 @@ module.exports = {
   ],
   theme: {
   	extend: {
+        // Existing perspective and rotate additions
+        perspective: {
+            '1000': '1000px'
+        },
+        rotate: {
+            'y-180': 'rotateY(180deg)'
+        },
+        // New transformStyle and backfaceVisibility additions
+        transformStyle: {
+            'preserve-3d': 'preserve-3d'
+        },
+        transitionProperty: {
+            'transform-3d': 'transform, transform-style, backface-visibility'
+        },
+        // Existing color configurations
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',

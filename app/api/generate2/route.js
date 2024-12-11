@@ -6,7 +6,7 @@ import { db } from "@/configs/db";
 export async function POST(req) {
   const { chapters, courseId,type } = await req.json();
 
-  const PROMPT = `Generate the flashcard on topic ${chapters} in JSON format with front back content, Maximum 7`;
+  const PROMPT = `Generate the flashcard on topic ${chapters} in JSON format with front back content maximum 104 characters, Maximum 15 cards`;
 
   const result = await db
     .insert(STUDY_TYPE_CONTENT_TABLE)
