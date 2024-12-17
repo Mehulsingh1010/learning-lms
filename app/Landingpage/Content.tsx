@@ -2,9 +2,7 @@
 'use client'
 
 import { motion } from "framer-motion"
-import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { BookOpen, Brain, Sparkles, ChevronRight, Lightbulb, Star, Users } from 'lucide-react'
 import Image from "next/image"
 import Link from "next/link"
@@ -20,106 +18,128 @@ const Belowpage = () => {
   )
 }
 
+// Custom Button component
+const Button = ({ children, className = "", variant = "default", ...props }) => {
+  const baseClasses = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background"
+  const variantClasses = {
+    default: "bg-primary text-primary-foreground hover:bg-primary/90",
+    outline: "border border-input hover:bg-accent hover:text-accent-foreground"
+  }
+  
+  return (
+    <button className={`${baseClasses} ${variantClasses[variant]} ${className}`} {...props}>
+      {children}
+    </button>
+  )
+}
+
+// Custom Card component
+const Card = ({ children, className = "", ...props }) => {
+  return (
+    <div className={`rounded-lg border bg-card text-card-foreground shadow-sm ${className}`} {...props}>
+      {children}
+    </div>
+  )
+}
 
 function Features() {
-    const features = [
-      {
-        icon: <Brain className="h-16 w-16 text-blue-600" />,
-        title: "AI-Powered Learning",
-        description: "Personalized study paths adapted to your learning style and pace",
-        image: "/courseimg.png",
-        gradient: "from-blue-100 to-blue-200"
-      },
-      {
-        icon: <BookOpen className="h-16 w-16 text-green-600" />,
-        title: "Smart Notes",
-        description: "Automatically generated comprehensive notes from your study material",
-        image: "/notesimg.png",
-        gradient: "from-green-100 to-green-200"
-      },
-      {
-        icon: <Sparkles className="h-16 w-16 text-purple-600" />,
-        title: "Dynamic Flashcards",
-        description: "Interactive flashcards that adapt to your mastery level",
-        image: "/flashcardimg.png",
-        gradient: "from-purple-100 to-purple-200"
-      }
-    ]
-  
-    return (
-      <section id="#features" className="py-24 bg-gradient-to-b from-white to-blue-50/50 w-full">
-        <div className="container mx-auto px-4 md:px-6 max-w-7xl">
-          <div className="text-center mb-16">
+  const features = [
+    {
+      icon: <Brain className="h-16 w-16 text-blue-600" />,
+      title: "AI-Powered Learning",
+      description: "Personalized study paths adapted to your learning style and pace",
+      image: "/courseimg.png",
+      gradient: "from-blue-100 to-blue-200"
+    },
+    {
+      icon: <BookOpen className="h-16 w-16 text-green-600" />,
+      title: "Smart Notes",
+      description: "Automatically generated comprehensive notes from your study material",
+      image: "/notesimg.png",
+      gradient: "from-green-100 to-green-200"
+    },
+    {
+      icon: <Sparkles className="h-16 w-16 text-purple-600" />,
+      title: "Dynamic Flashcards",
+      description: "Interactive flashcards that adapt to your mastery level",
+      image: "/flashcardimg.png",
+      gradient: "from-purple-100 to-purple-200"
+    }
+  ]
+
+  return (
+    <section id="#features" className="py-24 bg-gradient-to-b from-white to-blue-50/50 w-full">
+      <div className="container mx-auto px-4 md:px-6 max-w-7xl">
+        <div className="text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+          >
+            <Badge className="mb-4 bg-blue-100 text-blue-800" variant={undefined}>Features</Badge>
+            <h2 className="text-4xl font-bold tracking-tight text-gray-900 mb-4">
+              Supercharge Your Learning
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Discover how our AI-powered tools transform your educational experience
+            </p>
+          </motion.div>
+        </div>
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature, i) => (
             <motion.div
+              key={i}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ delay: i * 0.2, duration: 0.5 }}
               viewport={{ once: true }}
+              className="perspective-1000"
             >
-              <Badge className="mb-4 bg-blue-100 text-blue-800" variant={undefined}>Features</Badge>
-              <h2 className="text-4xl font-bold tracking-tight text-gray-900 mb-4">
-                Supercharge Your Learning
-              </h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Discover how our AI-powered tools transform your educational experience
-              </p>
-            </motion.div>
-          </div>
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.2, duration: 0.5 }}
-                viewport={{ once: true }}
-                className="perspective-1000"
-              >
-                <div className="relative group transform transition-all duration-300 hover:scale-105 hover:z-10">
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-400 to-purple-400 rounded-2xl opacity-30 group-hover:opacity-50 blur-lg transition-all duration-300"></div>
-                  <div className="relative bg-white/70 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br opacity-10 pointer-events-none"></div>
-                    <div className="relative z-10 p-6 space-y-4">
-                      <div className="flex justify-center mb-4">
-                        <div className="bg-white/50 backdrop-blur-sm rounded-full p-4 shadow-md">
-                          {feature.icon}
-                        </div>
+              <div className="relative group transform transition-all duration-300 hover:scale-105 hover:z-10">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-400 to-purple-400 rounded-2xl opacity-30 group-hover:opacity-50 blur-lg transition-all duration-300"></div>
+                <div className="relative bg-white/70 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br opacity-10 pointer-events-none"></div>
+                  <div className="relative z-10 p-6 space-y-4">
+                    <div className="flex justify-center mb-4">
+                      <div className="bg-white/50 backdrop-blur-sm rounded-full p-4 shadow-md">
+                        {feature.icon}
                       </div>
-                      <h3 className="text-2xl font-bold text-center text-gray-800">
-                        {feature.title}
-                      </h3>
-                      <p className="text-center text-gray-600">
-                        {feature.description}
-                      </p>
-                      <div className="pt-4 border-t border-gray-200/50">
-                        <Image
-                          src={feature.image}
-                          width={300}
-                          height={200}
-                          alt={feature.title}
-                          className="rounded-lg shadow-md w-full opacity-80 group-hover:opacity-100 transition-opacity"
-                        />
-                      </div>
-                      <div className="flex justify-center mt-4">
-                        <Button 
-                          variant="outline" 
-                          className="group border-blue-500 text-blue-600 hover:bg-blue-50"
-                        >
-                          Learn More
-                          <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                        </Button>
-                      </div>
+                    </div>
+                    <h3 className="text-2xl font-bold text-center text-gray-800">
+                      {feature.title}
+                    </h3>
+                    <p className="text-center text-gray-600">
+                      {feature.description}
+                    </p>
+                    <div className="pt-4 border-t border-gray-200/50">
+                      <Image
+                        src={feature.image}
+                        width={300}
+                        height={200}
+                        alt={feature.title}
+                        className="rounded-lg shadow-md w-full opacity-80 group-hover:opacity-100 transition-opacity"
+                      />
+                    </div>
+                    <div className="flex justify-center mt-4">
+                      <Button 
+                        variant="outline" 
+                        className="group border-blue-500 text-blue-600 hover:bg-blue-50"
+                      >
+                        Learn More
+                        <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </Button>
                     </div>
                   </div>
                 </div>
-              </motion.div>
-            ))}
-          </div>
+              </div>
+            </motion.div>
+          ))}
         </div>
-      </section>
-    )
-  }
-
+      </div>
+    </section>
+  )
+}
 
 function Benefits() {
   return (
