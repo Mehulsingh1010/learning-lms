@@ -1,4 +1,4 @@
-import { inngest } from "@/inngest/client";
+import { inngest } from "../../../inngest/client";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {

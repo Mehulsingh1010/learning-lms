@@ -2,16 +2,14 @@ import { inngest } from "./client";
 import {
   CHAPTER_NOTES_TABLE,
   STUDY_MATERIAL_TABLE,
-  STUDY_TYPE_CONTENT_TABLE,
-} from "@/configs/schema";
-import { generateNotesAiModel, GenerateStudyTypeContentAiModel } from "@/configs/AiModel";
-import { db } from "@/configs/db";
+  STUDY_TYPE_CONTENT_TABLE} from "../configs/schema"
+import {
+  generateNotesAiModel,
+  GenerateQuizAiModel,
+  GenerateStudyTypeContentAiModel,
+} from "../configs/AiModel";
+import { db } from "../configs/db";
 import { eq } from "drizzle-orm";
-
-
-
-
-
 
 export const helloWorld = inngest.createFunction(
   { id: "hello-world" },
@@ -122,8 +120,6 @@ export const generateNotes = inngest.createFunction(
       return "Notes generation complete";
     });
 
-
-
     const updateCourseStatus = await step.run(
       "Update course status",
       async () => {
@@ -151,23 +147,24 @@ export const GenerateStudyTypeContent = inngest.createFunction(
   async ({ event, step }) => {
     const { studyType, prompt, courseId, recordId } = event.data;
 
-    const FlashcardAiResult = await step.run(
+    const AIResult = await step.run(
       "Generating Flash Cards Using AI",
       async () => {
-        const result = await GenerateStudyTypeContentAiModel.sendMessage(prompt);
+        const result =
+          studyType == "Flashcard"
+            ? await GenerateStudyTypeContentAiModel.sendMessage(prompt)
+            : await GenerateQuizAiModel.sendMessage(prompt);
         const AiResult = JSON.parse(result.response.text());
         return AiResult;
       }
     );
 
-
-  
     const DbResult = await step.run("Save result to db", async () => {
       const result = await db
         .update(STUDY_TYPE_CONTENT_TABLE)
         .set({
-          content: FlashcardAiResult,
-          status:'Ready'
+          content: AIResult,
+          status: "Ready",
         })
         .where(eq(STUDY_TYPE_CONTENT_TABLE.id, recordId));
 

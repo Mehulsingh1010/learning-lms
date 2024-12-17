@@ -20,7 +20,7 @@ export async function POST(req) {
     const result = {
       notes: notes,
       flashCard: contentList?.find((item) => item.type == "Flashcard"),
-      quiz: null,
+      quiz: contentList?.find((item) => item.type == "Quiz"),
       qa: null,
     };
     return NextResponse.json(result);

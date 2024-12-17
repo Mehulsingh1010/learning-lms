@@ -1,11 +1,10 @@
 "use client";
 
-import { USER_TABLE } from "@/configs/schema";
-import { db } from "@/configs/db";
+
 import { useUser } from "@clerk/nextjs";
 import axios from "axios";
 import React, { useEffect } from "react";
-import { eq } from "drizzle-orm";
+
 
 // import { USER_TABLE } from "@/configs/schema";
 
