@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useMemo } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 
 const COLORS = {
@@ -24,12 +24,12 @@ class StudySymbol {
     this.type = ['📚', '🎓', '✏️', '💡', '🔬', '🖥️', '📝', '🧠', '🔍', '📊', '🗂️', '📅'][Math.floor(Math.random() * 12)]
     this.rotation = Math.random() * 360
     this.speed = Math.random() * 0.5 + 0.1
-    this.opacity = Math.random() * 0.3 + 0.1 // Reduced max opacity
+    this.opacity = Math.random() * 0.3 + 0.1
   }
 
   update(canvasWidth: number, canvasHeight: number) {
     this.y -= this.speed
-    this.rotation += this.speed * 0.5 // Reduced rotation speed
+    this.rotation += this.speed * 0.5
 
     if (this.y < -this.size) {
       this.y = canvasHeight + this.size
@@ -51,13 +51,19 @@ class StudySymbol {
 
 export default function BackgroundEffect() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const symbolCount = 75 // Reduced from 150 to 75
+  const symbolCount = 75
+  const [symbols, setSymbols] = useState<StudySymbol[]>([])
 
-  const symbols = useMemo(() => {
-    return Array.from({ length: symbolCount }, () => new StudySymbol(window.innerWidth, window.innerHeight))
+  useEffect(() => {
+    // Initialize symbols only on client side
+    setSymbols(Array.from({ length: symbolCount }, () => 
+      new StudySymbol(window.innerWidth, window.innerHeight)
+    ))
   }, [])
 
   useEffect(() => {
+    if (symbols.length === 0) return
+
     const canvas = canvasRef.current
     if (!canvas) return
 
