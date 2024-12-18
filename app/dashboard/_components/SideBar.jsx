@@ -1,4 +1,5 @@
 'use client'
+import { CourseCountContext } from "@/app/_context/CourseCountContext";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -9,7 +10,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React from "react";
+import React, { useContext } from "react";
 
 
 
@@ -31,7 +32,7 @@ function SideBar() {
       path: "/dashboard/profile",
     },
   ];
-
+  const {totalCourse, setTotalCourse} =useContext(CourseCountContext);
   const path=usePathname();
   return (
     <div className="h-screen shadow-md p-5">
@@ -53,9 +54,9 @@ function SideBar() {
       </div>
 
       <div className='border p-3 bg-slate-100 rounded-lg absolute bottom-10 w-[85%]'>
-        <h2 className='text-lg mb-2'>Available Credits : 5</h2>
-          <Progress value={30}/>
-          <h2 className='text-sm'>one out of 5 credits used</h2>
+        <h2 className='text-lg mb-2'>Available Credits : {(5-totalCourse)}</h2>
+          <Progress value={(totalCourse/5)*100}/>
+          <h2 className='text-sm'>{totalCourse} out of 5 credits used</h2>
 
           <Link href={'/dashboard/upgrade'} className='text-primary text-xs mt-3'>Upgrade to create more</Link>
       </div>

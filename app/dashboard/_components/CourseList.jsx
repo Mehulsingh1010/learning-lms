@@ -1,14 +1,16 @@
 'use client';
 import { useUser } from "@clerk/nextjs";
 import axios from "axios";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { RefreshCw } from "lucide-react";
 import CourseCardItem from "./CourseCardItem";
+import { CourseCountContext } from "@/app/_context/CourseCountContext";
 
 function CourseList() {
   const { user } = useUser();
   const [courseList, setCourseList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const {totalCourse, setTotalCourse}=useContext(CourseCountContext);
 
   // Fetch the courses when the component mounts
   useEffect(() => {
@@ -20,28 +22,30 @@ function CourseList() {
   const GetCourseList = async () => {
     try {
       setIsLoading(true);
-
+  
       if (!user?.primaryEmailAddress?.emailAddress) {
         console.error("User email is not available.");
         setIsLoading(false);
         return;
       }
-
+  
       const payload = {
         createdBy: user.primaryEmailAddress.emailAddress,
       };
-
+  
       console.log("Request payload:", payload);
-
+  
       const response = await axios.post("/api/courses", payload);
-
+  
       // Log the API response
       console.log("API response:", response.data);
-
+  
       if (response.data?.result) {
         setCourseList(response.data.result);
+        setTotalCourse(response.data.result?.length); // Fixed here
       } else {
         console.warn("No courses found.");
+        setTotalCourse(0); // Set to 0 if no courses found
       }
     } catch (error) {
       console.error("Error fetching courses:", error.response?.data || error.message);
@@ -49,6 +53,7 @@ function CourseList() {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div className="mt-10">
