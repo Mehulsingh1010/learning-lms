@@ -19,6 +19,8 @@ export const helloWorld = inngest.createFunction(
     return { message: `Hello ${event.data.email}!` };
   }
 );
+
+
 export const createNewUser = inngest.createFunction(
   { id: "create-user" },
   { event: "user.create" },
@@ -67,6 +69,8 @@ export const createNewUser = inngest.createFunction(
     return "Success";
   }
 );
+
+
 export const generateNotes = inngest.createFunction(
   { id: "generate-course" },
   { event: "notes.generate" },
@@ -89,56 +93,68 @@ export const generateNotes = inngest.createFunction(
     const { courseId, courseLayout } = course;
     const { chapters } = courseLayout;
 
-    // Log course details for debugging
     console.log(
       `Processing courseId: ${courseId} with ${chapters.length} chapters`
     );
 
-    const notesResult = await step.run("Generate Chapter Notes", async () => {
-      for (let index = 0; index < chapters.length; index++) {
-        const chapter = chapters[index];
-        const PROMPT = `Generate exam material for chapter titled '${
-          chapter.chapterTitle
-        }'.
-                        Include all topics and format the output in clean HTML without <head>, <body>, or <title> tags.
-                        Chapter details: ${JSON.stringify(chapter)}`;
+    let notesResult;
+    try {
+      notesResult = await step.run("Generate Chapter Notes", async () => {
+        for (let index = 0; index < chapters.length; index++) {
+          const chapter = chapters[index];
+          const PROMPT = `Generate exam material for chapter titled '${
+            chapter.chapterTitle
+          }'.
+                          Include all topics and format the output in clean HTML without <head>, <body>, or <title> tags.
+                          Chapter details: ${JSON.stringify(chapter)}`;
 
-        try {
-          const result = await generateNotesAiModel.sendMessage(PROMPT);
-          const aiResp = await result.response.text();
+          try {
+            const result = await generateNotesAiModel.sendMessage(PROMPT);
+            const aiResp = await result.response.text();
 
-          // Insert notes into database
-          await db.insert(CHAPTER_NOTES_TABLE).values({
-            chapterId: index,
-            courseId,
-            notes: aiResp,
-          });
-        } catch (error) {
-          console.error(`Error generating notes for chapter ${index}:`, error);
+            await db.insert(CHAPTER_NOTES_TABLE).values({
+              chapterId: index,
+              courseId,
+              notes: aiResp,
+            });
+            console.log(`Notes generated for chapter ${index}`);
+          } catch (error) {
+            console.error(`Error generating notes for chapter ${index}:`, error);
+            // Continue with the next chapter even if there's an error
+          }
         }
-      }
-      return "Notes generation complete";
-    });
+        return "Notes generation complete";
+      });
+    } catch (error) {
+      console.error("Error in note generation step:", error);
+      notesResult = "Notes generation failed";
+    }
 
-    const updateCourseStatus = await step.run(
-      "Update course status",
-      async () => {
-        try {
+    let updateCourseStatus;
+    try {
+      updateCourseStatus = await step.run(
+        "Update course status",
+        async () => {
           await db
             .update(STUDY_MATERIAL_TABLE)
             .set({ status: "Ready" })
             .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId));
+          console.log("Course marked as ready");
           return "Course marked as ready";
-        } catch (error) {
-          console.error("Error updating course status:", error);
-          throw new Error("Failed to update course status.");
         }
-      }
-    );
+      );
+    } catch (error) {
+      console.error("Error updating course status:", error);
+      updateCourseStatus = "Failed to update course status";
+    }
 
+    console.log("Function execution complete");
     return { notesResult, updateCourseStatus };
   }
 );
+
+
+
 
 export const GenerateStudyTypeContent = inngest.createFunction(
   { id: "Generate Study Content" },
