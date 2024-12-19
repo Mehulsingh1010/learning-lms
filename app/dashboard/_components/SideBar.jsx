@@ -45,10 +45,12 @@ function SideBar() {
         <Button className="w-full">+ Create New</Button></Link>
         <div className='mt-5'>
           {menuList.map((menu, index) => (
+            <Link href={menu.path} key={index}>
             <div key={index} className={`flex items-center p-3 hover:bg-[#DEE4EE] gap-5 rounded-lg cursor-pointer mt-3 ${path==menu.path &&'bg-[#DEE4EE]'}`}>
               <menu.icon />
               <h2>{menu.name}</h2>
             </div>
+            </Link>
           ))}
         </div>
       </div>
