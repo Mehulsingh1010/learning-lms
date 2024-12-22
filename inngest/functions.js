@@ -93,58 +93,53 @@ export const generateNotes = inngest.createFunction(
     const { courseId, courseLayout } = course;
     const { chapters } = courseLayout;
 
-    console.log(
-      `Processing courseId: ${courseId} with ${chapters.length} chapters`
-    );
+    console.log(`Processing courseId: ${courseId} with ${chapters.length} chapters`);
 
-    let notesResult;
+    // Step 1: Generate notes for chapters
+    let notesResult = "Notes generation complete";
     try {
-      // Process chapters concurrently using Promise.all
-      const chapterPromises = chapters.map((chapter, index) => {
-        const PROMPT = `Generate exam material for chapter titled '${chapter.chapterTitle}'.
-                        Include all topics and format the output in clean HTML without <head>, <body>, or <title> tags.
-                        Chapter details: ${JSON.stringify(chapter)}`;
+      // Process chapters concurrently with proper logging and isolated error handling
+      const chapterPromises = chapters.map(async (chapter, index) => {
+        try {
+          const prompt = `Generate exam material for chapter titled '${chapter.chapterTitle}'.
+                          Include all topics and format the output in clean HTML without <head>, <body>, or <title> tags.
+                          Chapter details: ${JSON.stringify(chapter)}`;
 
-        return generateNotesAiModel.sendMessage(PROMPT)
-          .then((result) => result.response.text())
-          .then((aiResp) => {
-            return db.insert(CHAPTER_NOTES_TABLE).values({
-              chapterId: index,
-              courseId,
-              notes: aiResp,
-            });
-          })
-          .then(() => {
-            console.log(`Notes generated for chapter ${index}`);
-          })
-          .catch((error) => {
-            console.error(`Error generating notes for chapter ${index}:`, error);
-            // Continue with the next chapter even if there's an error
+          // Call AI model to generate notes
+          const aiResponse = await generateNotesAiModel.sendMessage(prompt);
+          const notes = await aiResponse.response.text();
+
+          // Insert generated notes into the database
+          await db.insert(CHAPTER_NOTES_TABLE).values({
+            chapterId: index,
+            courseId,
+            notes,
           });
+
+          console.log(`Notes generated and stored for chapter ${index}`);
+        } catch (chapterError) {
+          console.error(`Error processing chapter ${index}:`, chapterError);
+          // Allow other chapters to continue processing
+        }
       });
 
       // Wait for all chapter promises to resolve
       await Promise.all(chapterPromises);
-
-      notesResult = "Notes generation complete";
     } catch (error) {
       console.error("Error in note generation step:", error);
       notesResult = "Notes generation failed";
     }
 
-    let updateCourseStatus;
+    // Step 2: Update course status
+    let updateCourseStatus = "Course marked as ready";
     try {
-      updateCourseStatus = await step.run(
-        "Update course status",
-        async () => {
-          await db
-            .update(STUDY_MATERIAL_TABLE)
-            .set({ status: "Ready" })
-            .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId));
-          console.log("Course marked as ready");
-          return "Course marked as ready";
-        }
-      );
+      await step.run("Update course status", async () => {
+        await db
+          .update(STUDY_MATERIAL_TABLE)
+          .set({ status: "Ready" })
+          .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId));
+        console.log("Course status updated to Ready");
+      });
     } catch (error) {
       console.error("Error updating course status:", error);
       updateCourseStatus = "Failed to update course status";

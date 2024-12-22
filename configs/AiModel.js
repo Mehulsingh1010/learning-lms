@@ -87,18 +87,19 @@ export const generateNotesAiModel = model.startChat({
       parts: [
         {
           text: `
-Generate detailed, interactive study material for the following chapter. Each chapter should include:
-1. A **chapter summary** introducing the key concepts.
-2. A **section for each topic** with:
-   - **Subheadings** for clarity.
-   - Concise **explanations** of the concepts.
-   - **Code snippets** or examples (if applicable).
-   - **Visuals or diagrams** with real image URLs.
-   - Real-world applications or clinical correlations (if relevant).
-3. End each chapter with a **quick revision section** summarizing the key points in a bullet list.
+Generate interactive study material for this chapter. Include:
+1. **Chapter Summary**: Overview of key concepts.
+2. **Topics**: For each topic:
+   - Subheadings for clarity.
+   - Concise explanations of the concepts.
+   - Code snippets (if applicable).
+   - Visual/image URLs.
+   - Real-world applications.
+3. **Quick Revision**: Summarize key points in bullet list.
 
-Please ensure that the content is in **HTML format**, but **without** including the \`<!DOCTYPE html>\`, \`<html>\`, \`<head>\`, or \`<body>\` tags. Below is the chapter information (note that this is **clean JSON format** without extra characters or placeholders):
+Format: **HTML only** (exclude <!DOCTYPE>, <html>, <head>, or <body> tags). 
 
+Chapter details (JSON format):
 {
   "chapterTitle": "Anatomy",
   "chapterSummary": "In-depth study of human anatomy, focusing on intricate relationships between structures and clinical correlations.",
@@ -109,14 +110,12 @@ Please ensure that the content is in **HTML format**, but **without** including 
         {
           "subtopicTitle": "Upper Limb",
           "explanation": "Study of the anatomy of the upper limb including muscles, nerves, and bones.",
-          "codeExample": null,
           "imageUrl": "https://example.com/upper-limb-image.jpg",
-          "realWorldApplication": "Understanding upper limb anatomy is essential for clinical procedures like surgeries and physical therapy."
+          "realWorldApplication": "Essential for clinical procedures like surgeries and physical therapy."
         },
         {
           "subtopicTitle": "Lower Limb",
           "explanation": "Study of the anatomy of the lower limb, focusing on skeletal and muscular structures.",
-          "codeExample": null,
           "imageUrl": "https://example.com/lower-limb-image.jpg",
           "realWorldApplication": "Vital for diagnosing and treating leg injuries and conditions."
         }
@@ -128,7 +127,6 @@ Please ensure that the content is in **HTML format**, but **without** including 
         {
           "subtopicTitle": "Cell Structure",
           "explanation": "Detailed analysis of cell structure and its importance in tissue function.",
-          "codeExample": null,
           "imageUrl": "https://example.com/cell-structure-image.jpg",
           "realWorldApplication": "Understanding cell structure is fundamental for many medical treatments and diagnostics."
         }
@@ -136,8 +134,7 @@ Please ensure that the content is in **HTML format**, but **without** including 
     }
   ],
   "revision": "Key Concepts:\n- Detailed regional anatomy\n- Microscopic anatomy\n- Clinical applications of anatomical knowledge"
-}
-`,
+}`,
         },
       ],
     },
