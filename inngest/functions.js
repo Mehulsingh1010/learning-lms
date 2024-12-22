@@ -99,32 +99,34 @@ export const generateNotes = inngest.createFunction(
 
     let notesResult;
     try {
-      notesResult = await step.run("Generate Chapter Notes", async () => {
-        for (let index = 0; index < chapters.length; index++) {
-          const chapter = chapters[index];
-          const PROMPT = `Generate exam material for chapter titled '${
-            chapter.chapterTitle
-          }'.
-                          Include all topics and format the output in clean HTML without <head>, <body>, or <title> tags.
-                          Chapter details: ${JSON.stringify(chapter)}`;
+      // Process chapters concurrently using Promise.all
+      const chapterPromises = chapters.map((chapter, index) => {
+        const PROMPT = `Generate exam material for chapter titled '${chapter.chapterTitle}'.
+                        Include all topics and format the output in clean HTML without <head>, <body>, or <title> tags.
+                        Chapter details: ${JSON.stringify(chapter)}`;
 
-          try {
-            const result = await generateNotesAiModel.sendMessage(PROMPT);
-            const aiResp = await result.response.text();
-
-            await db.insert(CHAPTER_NOTES_TABLE).values({
+        return generateNotesAiModel.sendMessage(PROMPT)
+          .then((result) => result.response.text())
+          .then((aiResp) => {
+            return db.insert(CHAPTER_NOTES_TABLE).values({
               chapterId: index,
               courseId,
               notes: aiResp,
             });
+          })
+          .then(() => {
             console.log(`Notes generated for chapter ${index}`);
-          } catch (error) {
+          })
+          .catch((error) => {
             console.error(`Error generating notes for chapter ${index}:`, error);
             // Continue with the next chapter even if there's an error
-          }
-        }
-        return "Notes generation complete";
+          });
       });
+
+      // Wait for all chapter promises to resolve
+      await Promise.all(chapterPromises);
+
+      notesResult = "Notes generation complete";
     } catch (error) {
       console.error("Error in note generation step:", error);
       notesResult = "Notes generation failed";
