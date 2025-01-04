@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress"
 import { motion, AnimatePresence } from "framer-motion"
 import confetti from 'canvas-confetti'
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
+import {  useRouter } from "next/navigation";
 
 export default function QuizPage() {
   const { courseId } = useParams()
@@ -20,6 +21,7 @@ export default function QuizPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [answerStatus, setAnswerStatus] = useState(null)
+  const router = useRouter();
 
   useEffect(() => {
     fetchQuiz()
@@ -81,6 +83,14 @@ export default function QuizPage() {
 
   return (
     <div className="max-w-4xl mx-auto mt-10 p-6 bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl shadow-2xl">
+
+      <Button
+              variant=""
+              onClick={() => router.push(`/course/${courseId}`)} // Navigate to the course page
+              className="bg-blue-600 text-white px-6 py-3 hover:shadow-lg rounded-lg  mb-6"
+            >
+              Back to Course
+            </Button>
       {!showResult ? (
         <AnimatePresence mode="wait">
           <motion.div

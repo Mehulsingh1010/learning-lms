@@ -1,17 +1,20 @@
 'use client'
 
 import axios from 'axios'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import FlashCardItem from './_components/flashCardItem'
 import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+
 
 function FlashCards() {
   const { courseId } = useParams()
   const [flashcards, setFlashcards] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [flippedStates, setFlippedStates] = useState([])
+  const router =useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,6 +44,15 @@ function FlashCards() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+
+
+      <Button
+                    variant=""
+                    onClick={() => router.push(`/course/${courseId}`)} // Navigate to the course page
+                    className="bg-blue-600 text-white px-6 py-3 hover:shadow-lg rounded-lg  mb-6"
+                  >
+                    Back to Course
+                  </Button>
       <motion.h1 
         className="text-4xl font-bold mb-6 text-center text-gray-800"
         initial={{ opacity: 0, y: -20 }}

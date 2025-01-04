@@ -2,13 +2,14 @@
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { Loader, ChevronLeft, ChevronRight, BookOpen, Lightbulb, Code, Rocket } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 function ViewNotes() {
   const { courseId } = useParams();
-  const [notes, setNotes] = useState([]); 
-  const [stepCount, setStepCount] = useState(1); 
+  const [notes, setNotes] = useState([]);
+  const [stepCount, setStepCount] = useState(1);
+  const router = useRouter(); // Use useRouter to navigate
 
   useEffect(() => {
     const GetNotes = async () => {
@@ -176,6 +177,15 @@ function ViewNotes() {
 
   return notes && (
     <div className="container mx-auto p-5 max-w-4xl">
+      {/* Back Button */}
+      <Button
+        variant=""
+        onClick={() => router.push(`/course/${courseId}`)} // Navigate to the course page
+        className="bg-blue-600 text-white px-6 py-3 hover:shadow-lg rounded-lg  mb-6"
+      >
+        Back to Course
+      </Button>
+
       {/* Progress Indicator */}
       <div className="flex items-center justify-between mb-6">
         <Button
@@ -195,10 +205,8 @@ function ViewNotes() {
           {notes?.map((_, index) => (
             <div
               key={index}
-              className={`
-                w-full h-2 rounded-full transition-all duration-300
-                ${index + 1 === stepCount ? "bg-blue-500 w-8" : index < stepCount ? "bg-blue-300" : "bg-gray-200"}
-              `}
+              className={`w-full h-2 rounded-full transition-all duration-300
+                ${index + 1 === stepCount ? "bg-blue-500 w-8" : index < stepCount ? "bg-blue-300" : "bg-gray-200"}`}
             />
           ))}
         </div>
@@ -207,10 +215,9 @@ function ViewNotes() {
           variant="outline"
           onClick={() => setStepCount(stepCount + 1)}
           disabled={stepCount >= notes.length}
-          className={`
-            ${stepCount >= notes.length ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "hover:bg-blue-50"}
-            transition-colors duration-300
-          `}
+          className={`${
+            stepCount >= notes.length ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "hover:bg-blue-50"
+          } transition-colors duration-300`}
         >
           Next <ChevronRight className="ml-2" />
         </Button>
