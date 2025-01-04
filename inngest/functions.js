@@ -1,9 +1,12 @@
 import { inngest } from "./client";
 import {
   CHAPTER_NOTES_TABLE,
+  FLASHCARD_TABLE,
+  QUIZ_TABLE,
   STUDY_MATERIAL_TABLE,
-  STUDY_TYPE_CONTENT_TABLE} from "../configs/schema"
+  } from "../configs/schema"
 import {
+  GenerateFlashcardsAiModel,
   generateNotesAiModel,
   GenerateQuizAiModel,
   GenerateStudyTypeContentAiModel,
@@ -153,35 +156,62 @@ export const generateNotes = inngest.createFunction(
 
 
 
-export const GenerateStudyTypeContent = inngest.createFunction(
-  { id: "Generate Study Content" },
-  { event: "studyType.content" },
 
+
+export const GenerateFlashcards = inngest.createFunction(
+  { id: "Generate Flashcards" },
+  { event: "flashcards.generate" },
   async ({ event, step }) => {
-    const { studyType, prompt, courseId, recordId } = event.data;
+    const { prompt, courseId, recordId } = event.data;
 
     const AIResult = await step.run(
-      "Generating Flash Cards Using AI",
+      "Generating Flashcards Using AI",
       async () => {
-        const result =
-          studyType == "Flashcard"
-            ? await GenerateStudyTypeContentAiModel.sendMessage(prompt)
-            : await GenerateQuizAiModel.sendMessage(prompt);
-        const AiResult = JSON.parse(result.response.text());
-        return AiResult;
+        const result = await GenerateFlashcardsAiModel.sendMessage(prompt);
+        return JSON.parse(result.response.text());
       }
     );
 
-    const DbResult = await step.run("Save result to db", async () => {
-      const result = await db
-        .update(STUDY_TYPE_CONTENT_TABLE)
+    await step.run("Save flashcards to db", async () => {
+      await db
+        .update(FLASHCARD_TABLE)
         .set({
           content: AIResult,
           status: "Ready",
         })
-        .where(eq(STUDY_TYPE_CONTENT_TABLE.id, recordId));
+        .where(eq(FLASHCARD_TABLE.id, recordId));
 
-      return "Data Inserted";
+      return "Flashcards Inserted";
+    });
+  }
+);
+
+
+
+export const GenerateQuiz = inngest.createFunction(
+  { id: "Generate Quiz" },
+  { event: "quiz.generate" },
+  async ({ event, step }) => {
+    const { prompt, courseId, recordId } = event.data;
+
+    const AIResult = await step.run(
+      "Generating Quiz Using AI",
+      async () => {
+        const result = await GenerateQuizAiModel.sendMessage(prompt);
+        return JSON.parse(result.response.text());
+      }
+    );
+
+    await step.run("Save quiz to db", async () => {
+      await db
+        .update(QUIZ_TABLE)
+        .set({
+          content: AIResult,
+          status: "Ready",
+        })
+        .where(eq(QUIZ_TABLE.id, recordId));
+
+      return "Quiz Inserted";
     });
   }
 );

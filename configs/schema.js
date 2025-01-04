@@ -43,3 +43,21 @@ export const PAYMENT_RECORD_TABLE=pgTable('paymentRecord',{
   sessionId:varchar(),
 
 })
+
+export const QUIZ_TABLE = pgTable('quiz', {
+  id: serial().primaryKey(),
+  courseId: varchar().notNull(),
+  content: json().notNull(), // JSON structure holding the quiz details
+  type: varchar().default('Quiz'), // Default value is 'Quiz'
+  status: varchar().default('Generating'), // Default status
+});
+
+
+export const FLASHCARD_TABLE = pgTable('flashcard', {
+  id: serial().primaryKey(),
+  courseId: varchar().notNull(),
+  content: json().notNull(), // JSON structure holding flashcard details
+  type: varchar().default('Flashcard'), // Default value is 'Flashcard'
+  status: varchar().default('Generating'), // Default status
+});
+

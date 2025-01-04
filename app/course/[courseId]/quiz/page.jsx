@@ -1,220 +1,169 @@
 'use client'
 
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { useParams } from "next/navigation";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
+import { useParams } from 'next/navigation'
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { motion, AnimatePresence } from "framer-motion"
+import confetti from 'canvas-confetti'
+import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
 
-export default function Quiz() {
-  const { courseId } = useParams();
-  const [quizData, setQuizData] = useState(null);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState("");
-  const [score, setScore] = useState(0);
-  const [showResult, setShowResult] = useState(false);
-  const [answerSubmitted, setAnswerSubmitted] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [retryCount, setRetryCount] = useState(0);
+export default function QuizPage() {
+  const { courseId } = useParams()
+  const [quiz, setQuiz] = useState(null)
+  const [currentQuestion, setCurrentQuestion] = useState(0)
+  const [selectedAnswer, setSelectedAnswer] = useState('')
+  const [score, setScore] = useState(0)
+  const [showResult, setShowResult] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [answerStatus, setAnswerStatus] = useState(null)
 
   useEffect(() => {
-    const fetchQuizData = async () => {
-      try {
-        const result = await axios.post("/api/study-type", {
-          courseId: courseId,
-          studyType: "quiz",
-        });
-        if (result.data && result.data.content && result.data.content.quiz && result.data.content.quiz.length > 0) {
-          setQuizData(result.data);
-          setIsLoading(false);
-        } else {
-          // If content is not available, retry after a delay
-          if (retryCount < 10) { // Limit to 10 retries
-            setTimeout(() => {
-              setRetryCount(prevCount => prevCount + 1);
-            }, 5000); // Retry every 5 seconds
-          } else {
-            setIsLoading(false); // Stop loading after 10 retries
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching quiz data:", error);
-        setIsLoading(false);
-      }
-    };
+    fetchQuiz()
+  }, [courseId])
 
-    fetchQuizData();
-  }, [courseId, retryCount]);
-
-  const handleAnswerSelect = (answer) => {
-    setSelectedAnswer(answer);
-  };
-
-  const handleNextQuestion = () => {
-    if (!quizData || !quizData.content.quiz) return;
-
-    const correct = selectedAnswer === quizData.content.quiz[currentQuestion].answer;
-    setIsCorrect(correct);
-    setAnswerSubmitted(true);
-    if (correct) {
-      setScore(score + 1);
+  const fetchQuiz = async () => {
+    try {
+      setLoading(true)
+      const response = await axios.get(`/api/quiz?courseId=${courseId}`)
+      setQuiz(response.data.content.quiz)
+      setLoading(false)
+    } catch (err) {
+      setError('Failed to load quiz. Please try again.')
+      setLoading(false)
     }
+  }
 
-    setTimeout(() => {
-      if (currentQuestion + 1 < quizData.content.quiz.length) {
-        setCurrentQuestion(currentQuestion + 1);
-        setSelectedAnswer("");
-        setAnswerSubmitted(false);
-        setIsCorrect(null);
-      } else {
-        setShowResult(true);
+  const handleAnswer = (answer) => {
+    setSelectedAnswer(answer)
+    const isCorrect = answer === quiz[currentQuestion].answer
+    setAnswerStatus(isCorrect ? 'correct' : 'incorrect')
+    if (isCorrect) {
+      setScore(score + 1)
+    }
+  }
+
+  const handleNext = () => {
+    setSelectedAnswer('')
+    setAnswerStatus(null)
+    if (currentQuestion + 1 < quiz.length) {
+      setCurrentQuestion(currentQuestion + 1)
+    } else {
+      setShowResult(true)
+      if (score / quiz.length >= 0.7) {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        })
       }
-    }, 1500);
-  };
+    }
+  }
 
-  const restartQuiz = () => {
-    setCurrentQuestion(0);
-    setSelectedAnswer("");
-    setScore(0);
-    setShowResult(false);
-    setAnswerSubmitted(false);
-    setIsCorrect(null);
-  };
+  const handleRestart = () => {
+    setCurrentQuestion(0)
+    setSelectedAnswer('')
+    setScore(0)
+    setShowResult(false)
+    setAnswerStatus(null)
+  }
+
+  if (loading) return (
+    <div className="flex justify-center items-center h-screen">
+      <Loader2 className="animate-spin text-primary w-16 h-16" />
+    </div>
+  )
+  if (error) return <div className="text-red-500 text-center text-xl">{error}</div>
+  if (!quiz) return <div className="text-center text-xl">No quiz available for this course.</div>
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <motion.h1 
-        className="text-4xl font-bold mb-6 text-center text-gray-800"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        Quiz
-      </motion.h1>
-      <motion.p 
-        className="text-xl text-gray-600 mb-12 text-center"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-      >
-        Test your knowledge with this interactive quiz
-      </motion.p>
-      {isLoading ? (
-        <motion.div 
-          className="text-center text-2xl text-gray-600"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          Generating quiz... This may take a few moments.
-        </motion.div>
-      ) : quizData && quizData.content && quizData.content.quiz && quizData.content.quiz.length > 0 ? (
-        <Card className="w-full max-w-2xl mx-auto shadow-lg">
-          <CardContent className="p-6 sm:p-8">
-            {!showResult ? (
-              <motion.div
-                key={currentQuestion}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5 }}
-              >
-                <Progress value={((currentQuestion + 1) / quizData.content.quiz.length) * 100} className="w-full mb-6" />
-                <h2 className="text-xl font-semibold mb-4 text-center">
-                  Question {currentQuestion + 1} of {quizData.content.quiz.length}
-                </h2>
-                <p className="text-lg mb-6 text-center">{quizData.content.quiz[currentQuestion].question}</p>
-                <RadioGroup value={selectedAnswer} onValueChange={handleAnswerSelect} className="space-y-4">
-                  {quizData.content.quiz[currentQuestion].options.map((option, index) => (
-                    <div
+    <div className="max-w-4xl mx-auto mt-10 p-6 bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl shadow-2xl">
+      {!showResult ? (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentQuestion}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2 className="text-3xl font-bold mb-6 text-center text-primary">Question {currentQuestion + 1} of {quiz.length}</h2>
+            <Progress value={(currentQuestion / quiz.length) * 100} className="mb-6" />
+            <Card className="mb-6">
+              <CardContent className="p-6">
+                <p className="text-xl mb-6">{quiz[currentQuestion].question}</p>
+                <div className="space-y-4">
+                  {quiz[currentQuestion].options.map((option, index) => (
+                    <Button
                       key={index}
-                      className={`flex items-center space-x-3 p-4 rounded-lg transition-colors ${
-                        selectedAnswer === option
-                          ? "bg-purple-100 dark:bg-purple-900"
-                          : "hover:bg-gray-100 dark:hover:bg-gray-800"
-                      }`}
+                      onClick={() => handleAnswer(option)}
+                      variant={selectedAnswer === option ? (answerStatus === 'correct' ? 'default' : 'destructive') : 'outline'}
+                      className="w-full text-left justify-start text-lg py-6 relative overflow-hidden group"
+                      disabled={answerStatus !== null}
                     >
-                      <RadioGroupItem value={option} id={`option-${index}`} className="text-purple-600" />
-                      <Label htmlFor={`option-${index}`} className="flex-grow cursor-pointer text-base">
-                        {option}
-                      </Label>
-                      {answerSubmitted && option === quizData.content.quiz[currentQuestion].answer && (
-                        <CheckCircle className="text-green-500 h-6 w-6" />
+                      <span className="relative z-10">{option}</span>
+                      {selectedAnswer === option && (
+                        <motion.div
+                          className="absolute inset-0 bg-current opacity-10"
+                          initial={{ scaleX: 0 }}
+                          animate={{ scaleX: 1 }}
+                          transition={{ duration: 0.5 }}
+                        />
                       )}
-                      {answerSubmitted && option === selectedAnswer && option !== quizData.content.quiz[currentQuestion].answer && (
-                        <XCircle className="text-red-500 h-6 w-6" />
+                      {answerStatus && selectedAnswer === option && (
+                        <motion.div
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                        >
+                          {answerStatus === 'correct' ? (
+                            <CheckCircle2 className="text-green-500 w-6 h-6" />
+                          ) : (
+                            <XCircle className="text-red-500 w-6 h-6" />
+                          )}
+                        </motion.div>
                       )}
-                    </div>
+                    </Button>
                   ))}
-                </RadioGroup>
-                {answerSubmitted && (
-                  <motion.p
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`mt-4 text-center text-lg font-semibold ${
-                      isCorrect ? "text-green-600" : "text-red-600"
-                    }`}
-                  >
-                    {isCorrect ? "Correct!" : "Incorrect. The correct answer is: " + quizData.content.quiz[currentQuestion].answer}
-                  </motion.p>
-                )}
-              </motion.div>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5 }}
-                className="text-center"
-              >
-                <h2 className="text-3xl font-bold mb-6">Quiz Completed!</h2>
-                <div className="text-7xl font-bold mb-6 text-purple-600">
-                  {((score / quizData.content.quiz.length) * 100).toFixed(0)}%
                 </div>
-                <p className="text-xl mb-4">
-                  Your score: {score} out of {quizData.content.quiz.length}
-                </p>
-                <p className="text-lg mb-6">Great job on completing the quiz!</p>
-              </motion.div>
-            )}
-          </CardContent>
-          <CardFooter className="flex justify-center p-6 bg-gray-50 dark:bg-gray-800 rounded-b-lg">
-            {!showResult ? (
+              </CardContent>
+            </Card>
+            <div className="flex justify-end">
               <Button
-                onClick={handleNextQuestion}
-                disabled={!selectedAnswer || answerSubmitted}
-                className="w-full max-w-xs text-lg py-4 sm:py-6"
+                onClick={handleNext}
+                disabled={!selectedAnswer}
+                className="text-lg px-8 py-6"
               >
-                {answerSubmitted
-                  ? "Next Question"
-                  : currentQuestion + 1 === quizData.content.quiz.length
-                  ? "Finish Quiz"
-                  : "Submit Answer"}
+                {currentQuestion === quiz.length - 1 ? 'Finish' : 'Next'}
               </Button>
-            ) : (
-              <Button onClick={restartQuiz} className="w-full max-w-xs text-lg py-4 sm:py-6">
-                Restart Quiz
-              </Button>
-            )}
-          </CardFooter>
-        </Card>
+            </div>
+          </motion.div>
+        </AnimatePresence>
       ) : (
-        <motion.div 
-          className="text-center text-2xl text-gray-600"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
+          className="text-center"
         >
-          No quiz available at the moment. Please try again later or contact support if the issue persists.
+          <h2 className="text-4xl font-bold mb-6 text-primary">Quiz Completed!</h2>
+          <p className="text-2xl mb-6">Your score: {score} out of {quiz.length}</p>
+          <div className="mb-8">
+            <Progress value={(score / quiz.length) * 100} className="h-4" />
+          </div>
+          {score / quiz.length >= 0.7 ? (
+            <p className="text-xl mb-8 text-green-600">Great job! You passed the quiz!</p>
+          ) : (
+            <p className="text-xl mb-8 text-yellow-600">Keep practicing! You can do better!</p>
+          )}
+          <Button onClick={handleRestart} className="text-lg px-8 py-6">Restart Quiz</Button>
         </motion.div>
       )}
     </div>
-  );
+  )
 }
 

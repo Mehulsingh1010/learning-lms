@@ -13,7 +13,7 @@ function Provider({ children }) {
 
   useEffect(() => {
     user && CheckNewUser(); // Run the check when the user exists
-  }, [user]); // Dependency array to re-run when `user` changes
+  }, []); // Dependency array to re-run when `user` changes
 
   const CheckNewUser = async () => {
     const resp = await axios.post("/api/create-user", { user: user });

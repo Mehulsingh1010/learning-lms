@@ -20,17 +20,16 @@ function MaterialCardItem({ item, studyContent, course, setStudyContent }) {
     })
 
     try {
-      const result = await axios.post("/api/generate2", {
+      const result = await axios.post(`/api/${item.type}`, {
         courseId: course?.studyMaterial[0]?.courseId,
-        type: item.name,
-        chapters: chapters,
+        prompt: `Generate ${item.name} for the course: ${course?.title}. Chapters: ${chapters}`,
       })
       setLoading(false)
       console.log(result)
       // Update the studyContent state after successful generation
       setStudyContent(prevContent => ({
         ...prevContent,
-        [item.type]: [{ generated: true }] // You might want to adjust this based on your API response
+        [item.type]: result.data
       }))
     } catch (err) {
       setLoading(false)
@@ -38,7 +37,7 @@ function MaterialCardItem({ item, studyContent, course, setStudyContent }) {
     }
   }
 
-  const isGenerated = studyContent?.[item.type]?.length > 0
+  const isGenerated = studyContent?.[item.type]
 
   return (
     <div className={`border shadow-md rounded-lg p-5 flex flex-col items-center ${!isGenerated && "grayscale"}`}>
@@ -86,4 +85,3 @@ function MaterialCardItem({ item, studyContent, course, setStudyContent }) {
 }
 
 export default MaterialCardItem
-

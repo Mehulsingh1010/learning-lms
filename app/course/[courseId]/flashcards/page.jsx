@@ -12,29 +12,16 @@ function FlashCards() {
   const [flashcards, setFlashcards] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [flippedStates, setFlippedStates] = useState([])
-  const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const result = await axios.post('/api/study-type', {
-          courseId: courseId,
-          studyType: 'Flashcard'
-        })
-        if (result.data && result.data.content && result.data.content.length > 0) {
-          setFlashcards(result.data)
-          setFlippedStates(new Array(result.data.content.length).fill(false))
-          setIsLoading(false)
-        } else {
-          // If content is not available, retry after a delay
-          if (retryCount < 10) { // Limit to 10 retries
-            setTimeout(() => {
-              setRetryCount(prevCount => prevCount + 1)
-            }, 5000) // Retry every 5 seconds
-          } else {
-            setIsLoading(false) // Stop loading after 10 retries
-          }
+        const response = await axios.get(`/api/flashcard?courseId=${courseId}`)
+        if (response.data && response.data.content) {
+          setFlashcards(response.data)
+          setFlippedStates(new Array(response.data.content.length).fill(false))
         }
+        setIsLoading(false)
       } catch (error) {
         console.error('Error fetching flashcards:', error)
         setIsLoading(false)
@@ -42,7 +29,7 @@ function FlashCards() {
     }
 
     fetchData()
-  }, [courseId, retryCount])
+  }, [courseId])
 
   const handleFlip = (index) => {
     setFlippedStates(prevStates => {
@@ -78,7 +65,7 @@ function FlashCards() {
           transition={{ duration: 0.5 }}
         >
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          Generating flashcards... This may take a few moments.
+          Loading flashcards...
         </motion.div>
       ) : flashcards && flashcards.content && flashcards.content.length > 0 ? (
         <motion.div 
@@ -104,7 +91,7 @@ function FlashCards() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          No flashcards available at the moment. Please try again later or contact support if the issue persists.
+          No flashcards available at the moment. Please try again later.
         </motion.div>
       )}
     </div>
@@ -112,4 +99,3 @@ function FlashCards() {
 }
 
 export default FlashCards
-
